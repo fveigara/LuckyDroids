@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="true">
+
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_bot"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_cable"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_droid"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_robot"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_vr"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_bot"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_cable"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_droid"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_robot"/>
+    <item
+        android:duration="100"
+        android:drawable="@drawable/ic_vr"/>
+
+</animation-list>
