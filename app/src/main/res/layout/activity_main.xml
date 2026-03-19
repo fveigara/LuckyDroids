@@ -8,6 +8,7 @@ android:layout_height="match_parent">
 
 <TextView
     android:id="@+id/mainActivityTvGananciasAux"
+    android:layout_below="@+id/mainActivityLl"
     android:textSize="24dp"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -15,6 +16,7 @@ android:layout_height="match_parent">
 
 <TextView
     android:id="@+id/mainActivityTvGanancias"
+    android:layout_below="@+id/mainActivityLl"
     android:textColor="@color/black"
     android:textSize="24dp"
     android:layout_toRightOf="@+id/mainActivityTvGananciasAux"
@@ -23,7 +25,6 @@ android:layout_height="match_parent">
 
 <LinearLayout
     android:id="@+id/mainActivityLl"
-    android:layout_below="@+id/mainActivityTvGanancias"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="200dp">
@@ -48,7 +49,7 @@ android:layout_height="match_parent">
 <Button
     android:id="@+id/mainActivityBtJugar"
     android:text="Jugar"
-    android:layout_below="@+id/mainActivityLl"
+    android:layout_below="@+id/mainActivityTvGananciasAux"
     android:layout_width="match_parent"
     android:layout_height="wrap_content" />
 
