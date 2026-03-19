@@ -43,5 +43,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation("com.android.support:design:28.0.0")
+    implementation("androidx.core:core-ktx:1.10.0")
 }
