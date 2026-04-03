@@ -40,11 +40,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 🔝 Toolbar
+        // Toolbar
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // 🎰 Referencias UI
+        // Referencias UI
         slot1 = findViewById(R.id.mainActivitySlot1)
         slot2 = findViewById(R.id.mainActivitySlot2)
         slot3 = findViewById(R.id.mainActivitySlot3)
@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
         tvGanancias.text = intGanancias.toString()
 
-        // 🎮 Botón jugar
+        // Botón jugar
         btnJugar.setOnClickListener {
             if (intGanancias <= 0) {
                 Toast.makeText(this, "No tienes saldo suficiente", Toast.LENGTH_SHORT).show()
