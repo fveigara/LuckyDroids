@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ScreenStart"
+    tools:context=".SplashActivity"
     android:padding="30sp">
 
 
@@ -36,7 +36,7 @@
         android:id="@+id/add_button"
         android:layout_width="match_parent"
         android:layout_height="70dp"
-        android:text="Añadir"
+        android:text="Siguiente"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

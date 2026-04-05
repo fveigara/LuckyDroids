@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="#EEEEEE"
+    android:layout_margin="6dp">
+
+    <!-- Combinación -->
+    <TextView
+        android:id="@+id/tvCombinacion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Slots: 1 - 2 - 3"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- Premio -->
+    <TextView
+        android:id="@+id/tvPremio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Premio: 5€"
+        android:textSize="14sp" />
+
+    <!-- Saldo -->
+    <TextView
+        android:id="@+id/tvSaldo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Saldo: 20€"
+        android:textSize="14sp" />
+
+</LinearLayout>
