@@ -54,6 +54,9 @@ class MainActivity : AppCompatActivity() {
         btnJugar = findViewById(R.id.mainActivityBtJugar)
         layout = findViewById(R.id.mainActivityRl)
 
+        ganancias = intent.getIntExtra("dinero", 10)
+        tvGanancias.text = ganancias.toString()
+
         db = Room.databaseBuilder(
             applicationContext,
             GameDatabase::class.java,
@@ -136,13 +139,24 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { it ->
-                    ganancias = it.monedas
+                    if (it != null) {
+                        ganancias = it.monedas
+                    }
                     tvGanancias.text = ganancias.toString()
                 },
                 {
                     tvGanancias.text = ganancias.toString()
                 }
             )
+            //.subscribe(
+                //{ it ->
+                    //ganancias = it.monedas
+                    //tvGanancias.text = ganancias.toString()
+                //},
+                //{
+                    //tvGanancias.text = ganancias.toString()
+                //}
+            //)
     }
 
     private fun guardarPartida(premio: Int) {

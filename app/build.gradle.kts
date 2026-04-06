@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -40,8 +40,8 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
 
     // Room (SQLite)
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0-alpha11")
+    ksp("androidx.room:room-compiler:2.7.0-alpha11")
 
     // RxJava
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
@@ -49,6 +49,9 @@ dependencies {
 
     // Room + RxJava
     implementation("androidx.room:room-rxjava3:2.6.1")
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
+    implementation("androidx.room:room-rxjava3:2.7.0-alpha11")
 
     // RecyclerView (para historial)
     implementation("androidx.recyclerview:recyclerview:1.3.2")

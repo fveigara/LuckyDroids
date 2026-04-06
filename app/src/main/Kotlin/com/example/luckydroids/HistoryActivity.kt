@@ -2,6 +2,7 @@ package com.example.luckydroids
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -22,6 +23,10 @@ class HistoryActivity : AppCompatActivity() {
         // Referencia al RecyclerView
         recyclerView = findViewById(R.id.recyclerHistory)
 
+        val toolbar = findViewById<Toolbar>(R.id.toolbarHistory)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         // Layout manager
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -39,5 +44,10 @@ class HistoryActivity : AppCompatActivity() {
             .subscribe { lista ->
                 recyclerView.adapter = HistoryAdapter(lista)
             }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
     }
 }

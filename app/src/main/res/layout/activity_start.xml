@@ -15,7 +15,7 @@
         android:layout_marginTop="291dp"
         android:ems="10"
         android:inputType="text"
-        android:text="Nombre del jugador"
+        android:hint="Nombre del jugador"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -27,7 +27,7 @@
         android:layout_marginTop="20dp"
         android:ems="10"
         android:inputType="number"
-        android:text="Dinero"
+        android:hint="Dinero"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/player_input" />
