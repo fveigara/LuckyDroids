@@ -21,14 +21,20 @@ class StartActivity : AppCompatActivity() {
         addButton = findViewById(R.id.add_button)
 
         addButton.setOnClickListener {
-            val nombre = playerInput.text.toString()
-            val dinero = moneyInput.text.toString()
+
+            val nombre = playerInput.text.toString().trim()
+            val dinero = moneyInput.text.toString().trim().toIntOrNull() ?: 10
+
+            if (nombre.isEmpty()) {
+                playerInput.error = "Introduce un nombre"
+                return@setOnClickListener
+            }
 
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("nombre", nombre)
-            intent.putExtra("dinero", dinero.toIntOrNull() ?: 10)
+            intent.putExtra("dinero", dinero)
 
             startActivity(intent)
         }
+        }
     }
-}

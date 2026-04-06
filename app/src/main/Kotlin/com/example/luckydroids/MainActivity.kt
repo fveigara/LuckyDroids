@@ -54,16 +54,21 @@ class MainActivity : AppCompatActivity() {
         btnJugar = findViewById(R.id.mainActivityBtJugar)
         layout = findViewById(R.id.mainActivityRl)
 
-        ganancias = intent.getIntExtra("dinero", 10)
-        tvGanancias.text = ganancias.toString()
-
         db = Room.databaseBuilder(
             applicationContext,
             GameDatabase::class.java,
             "db"
         ).build()
 
-        cargarSaldo()
+        val dineroInicial = intent.getIntExtra("dinero", -1)
+
+        if (dineroInicial != -1) {
+            ganancias = dineroInicial
+            tvGanancias.text = "Ganancias: $ganancias"
+            guardarSaldo()
+        } else {
+            cargarSaldo()
+        }
 
         btnJugar.setOnClickListener {
             if (ganancias <= 0) {
@@ -107,7 +112,7 @@ class MainActivity : AppCompatActivity() {
 
         val premio = calcularPremio()
         ganancias = ganancias - 1 + premio
-        tvGanancias.text = ganancias.toString()
+        tvGanancias.text = "Ganancias: $ganancias"
 
         guardarSaldo()
         guardarPartida(premio)
@@ -142,10 +147,10 @@ class MainActivity : AppCompatActivity() {
                     if (it != null) {
                         ganancias = it.monedas
                     }
-                    tvGanancias.text = ganancias.toString()
+                    tvGanancias.text =  "Ganancias: $ganancias"
                 },
                 {
-                    tvGanancias.text = ganancias.toString()
+                    tvGanancias.text =  "Ganancias: $ganancias"
                 }
             )
             //.subscribe(
@@ -174,6 +179,20 @@ class MainActivity : AppCompatActivity() {
             .subscribe()
     }
 
+    private fun borrarHistorial() {
+        db.partidaDao().borrarTodas()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    Toast.makeText(this, "Historial borrado", Toast.LENGTH_SHORT).show()
+                },
+                {
+                    it.printStackTrace()
+                }
+            )
+    }
+
     override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -181,10 +200,25 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         return when (item.itemId) {
+
             R.id.menu_historial -> {
                 startActivity(Intent(this, HistoryActivity::class.java))
                 true
             }
+
+            R.id.menu_reiniciar -> {
+                ganancias = 10
+                tvGanancias.text = "Ganancias: $ganancias"
+                guardarSaldo()
+                Toast.makeText(this, "Saldo reiniciado", Toast.LENGTH_SHORT).show()
+                true
+            }
+
+            R.id.menu_borrar -> {
+                borrarHistorial()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }

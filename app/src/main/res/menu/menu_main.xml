@@ -8,4 +8,8 @@
         android:id="@+id/menu_reiniciar"
         android:title="Reiniciar saldo"/>
 
+    <item
+        android:id="@+id/menu_borrar"
+        android:title="Borrar historial"/>
+
 </menu>
