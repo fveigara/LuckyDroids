@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="6dp"
-    android:background="#000000"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:text="Slots: 1 - 2 - 3"
         android:textSize="16sp"
+        android:textColor="?android:attr/textColorPrimary"
         android:textStyle="bold" />
 
     <!-- Premio -->
@@ -22,7 +23,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Premio: 5€"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <!-- Saldo -->
     <TextView
@@ -30,6 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Saldo: 20€"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:textColor="?android:attr/textColorPrimary" />
 
 </LinearLayout>

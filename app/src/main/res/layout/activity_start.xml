@@ -37,6 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:text="Siguiente"
+        android:textColor="?android:attr/textColorPrimary"
         android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
