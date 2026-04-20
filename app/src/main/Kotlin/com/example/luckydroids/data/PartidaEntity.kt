@@ -11,5 +11,7 @@ data class PartidaEntity(
     val slot3: Int,
     val premio: Int,
     val saldoFinal: Int,
-    val fecha: Long
+    val fecha: Long,
+    val latitud: Double,
+    val longitud: Double
 )

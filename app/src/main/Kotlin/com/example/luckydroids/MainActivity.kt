@@ -1,13 +1,28 @@
 package com.example.luckydroids
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.AnimationDrawable
+import android.location.LocationManager
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.CalendarContract
+import android.provider.MediaStore
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.room.Room
 import com.example.luckydroids.data.*
 import com.google.android.material.snackbar.Snackbar
@@ -24,6 +39,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvGanancias: TextView
     private lateinit var btnJugar: Button
     private lateinit var layout: LinearLayout
+
+    private lateinit var sonidoGiro: MediaPlayer
+    private lateinit var sonidoVictoria: MediaPlayer
+    private var lat: Double = 0.0
+    private var lon: Double = 0.0
 
     private lateinit var db: GameDatabase
 
@@ -44,6 +64,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+        }
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        try {
+            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            lat = location?.latitude ?: 0.0
+            lon = location?.longitude ?: 0.0
+        } catch (e: SecurityException) {
+            lat = 0.0
+            lon = 0.0
+        }
+
+        startService(Intent(this, MusicService::class.java))
+        crearCanal()
+
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
@@ -53,6 +90,8 @@ class MainActivity : AppCompatActivity() {
         tvGanancias = findViewById(R.id.mainActivityTvGanancias)
         btnJugar = findViewById(R.id.mainActivityBtJugar)
         layout = findViewById(R.id.mainActivityRl)
+        sonidoGiro = MediaPlayer.create(this, R.raw.spin)
+        sonidoVictoria = MediaPlayer.create(this, R.raw.win)
 
         db = Room.databaseBuilder(
             applicationContext,
@@ -102,6 +141,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun tirar() {
+        if (!sonidoGiro.isPlaying) {
+            sonidoGiro.start()
+        }
         s1 = Random.nextInt(imagenes.size)
         s2 = Random.nextInt(imagenes.size)
         s3 = Random.nextInt(imagenes.size)
@@ -121,10 +163,20 @@ class MainActivity : AppCompatActivity() {
     private fun calcularPremio(): Int {
         return when {
             s1 == s2 && s2 == s3 -> {
+                if (!sonidoVictoria.isPlaying) {
+                    sonidoVictoria.start()
+                }
+                guardarCaptura()
+                mostrarNotificacion()
                 Snackbar.make(layout, "100€", Snackbar.LENGTH_SHORT).show()
                 100
             }
             s1 == s2 || s1 == s3 || s2 == s3 -> {
+                if (!sonidoVictoria.isPlaying) {
+                    sonidoVictoria.start()
+                }
+                guardarCaptura()
+                mostrarNotificacion()
                 Snackbar.make(layout, "5€", Snackbar.LENGTH_SHORT).show()
                 5
             }
@@ -171,12 +223,73 @@ class MainActivity : AppCompatActivity() {
             slot3 = s3,
             premio = premio,
             saldoFinal = ganancias,
-            fecha = System.currentTimeMillis()
+            fecha = System.currentTimeMillis(),
+            latitud = lat,
+            longitud = lon
         )
 
         db.partidaDao().insertar(partida)
             .subscribeOn(Schedulers.io())
             .subscribe()
+    }
+
+    private fun guardarCaptura() {
+        val view = window.decorView.rootView
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "victoria_${System.currentTimeMillis()}.png")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        }
+
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        uri?.let {
+            contentResolver.openOutputStream(it)?.use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            }
+        }
+    }
+
+    private fun guardarEnCalendario() {
+        val intent = Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.Events.TITLE, "Victoria en Lucky Droids")
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, System.currentTimeMillis())
+        }
+        startActivity(intent)
+    }
+
+    private fun crearCanal() {
+        val channel = NotificationChannel(
+            "victorias",
+            "Victorias",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(channel)
+    }
+
+    private fun mostrarNotificacion() {
+
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+        }
+
+        val builder = NotificationCompat.Builder(this, "victorias")
+            .setSmallIcon(R.drawable.ic_bot)
+            .setContentTitle("¡Victoria!")
+            .setContentText("Has ganado una partida")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+
+        NotificationManagerCompat.from(this).notify(1, builder.build())
     }
 
     private fun borrarHistorial() {
@@ -193,12 +306,12 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
-    override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
 
             R.id.menu_historial -> {
@@ -218,6 +331,13 @@ class MainActivity : AppCompatActivity() {
                 borrarHistorial()
                 true
             }
+
+            R.id.menu_salir -> {
+                stopService(Intent(this, MusicService::class.java))
+                finish()
+                true
+            }
+
 
             else -> super.onOptionsItemSelected(item)
         }
