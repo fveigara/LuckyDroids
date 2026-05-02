@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.core.Flowable
 
 @Dao
 interface PartidaDao {
@@ -13,7 +13,7 @@ interface PartidaDao {
     fun insertar(partida: PartidaEntity): Completable
 
     @Query("SELECT * FROM PartidaEntity ORDER BY fecha DESC")
-    fun obtenerTodas(): Single<List<PartidaEntity>>
+    fun obtenerTodas(): Flowable<List<PartidaEntity>>
 
     @Query("DELETE FROM PartidaEntity")
     fun borrarTodas(): Completable

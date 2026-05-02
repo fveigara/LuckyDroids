@@ -41,9 +41,14 @@ class HistoryActivity : AppCompatActivity() {
         db.partidaDao().obtenerTodas()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { lista ->
-                recyclerView.adapter = HistoryAdapter(lista)
-            }
+            .subscribe(
+                { lista ->
+                    recyclerView.adapter = HistoryAdapter(lista)
+                },
+                { error ->
+                    error.printStackTrace()
+                }
+            )
     }
 
     override fun onSupportNavigateUp(): Boolean {

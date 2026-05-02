@@ -97,7 +97,8 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             GameDatabase::class.java,
             "db"
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
 
         val dineroInicial = intent.getIntExtra("dinero", -1)
 
@@ -187,7 +188,14 @@ class MainActivity : AppCompatActivity() {
     private fun guardarSaldo() {
         db.saldoDao().guardarSaldo(SaldoEntity(id = 1, monedas = ganancias))
             .subscribeOn(Schedulers.io())
-            .subscribe()
+            .subscribe(
+                {
+                    // éxito
+                },
+                { error ->
+                    error.printStackTrace()
+                }
+            )
     }
 
     private fun cargarSaldo() {
@@ -230,7 +238,14 @@ class MainActivity : AppCompatActivity() {
 
         db.partidaDao().insertar(partida)
             .subscribeOn(Schedulers.io())
-            .subscribe()
+            .subscribe(
+                {
+                    // éxito
+                },
+                { error ->
+                    error.printStackTrace()
+                }
+            )
     }
 
     private fun guardarCaptura() {
