@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">Lucky Droids</string>
+    <string name="play">Jugar</string>
+    <string name="history">Historial</string>
+    <string name="reset_balance">Reiniciar saldo</string>
+    <string name="delete_history">Borrar historial</string>
+    <string name="music">Activar/Desactivar música</string>
+    <string name="help">Ayuda</string>
+    <string name="exit">Salir</string>
+    <string name="winnings">Ganancias: %1$d</string>
+    <string name="no_balance">Sin saldo</string>
+    <string name="balance_reset">Saldo reiniciado</string>
+    <string name="history_deleted">Historial borrado</string>
+    <string name="win_100">Has ganado 100€</string>
+    <string name="win_5">Has ganado 5€</string>
+    <string name="no_win">No has ganado</string>
+    <string name="player_name">Nombre del jugador</string>
+    <string name="money">Dinero</string>
+    <string name="add">Añadir</string>
+    <string name="screenshot_saved">Captura guardada en galería</string>
+    <string name="calendar_title">Victoria en Lucky Droids</string>
+    <string name="calendar_description">Has ganado %1$d monedas.</string>
+    <string name="notification_channel_victories">Victorias</string>
+    <string name="notification_title">¡Victoria!</string>
+    <string name="notification_text">Has ganado %1$d monedas</string>
+    <string name="music_enabled">Música activada</string>
+    <string name="music_disabled">Música desactivada</string>
 </resources>

@@ -1,8 +1,8 @@
 package com.example.luckydroids
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -20,34 +20,36 @@ class HistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        // Referencia al RecyclerView
         recyclerView = findViewById(R.id.recyclerHistory)
-
-        val toolbar = findViewById<Toolbar>(R.id.toolbarHistory)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        // Layout manager
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        //  Base de datos
         db = Room.databaseBuilder(
             applicationContext,
             GameDatabase::class.java,
             "db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
-        // Cargar datos
+        cargarHistorial()
+    }
+
+    private fun cargarHistorial() {
         db.partidaDao().obtenerTodas()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { lista ->
-                recyclerView.adapter = HistoryAdapter(lista)
-            }
-    }
+            .subscribe(
+                { lista ->
+                    recyclerView.adapter = HistoryAdapter(lista)
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
-        return true
+                    if (lista.isEmpty()) {
+                        Toast.makeText(this, "No hay partidas guardadas", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                { error ->
+                    error.printStackTrace()
+                    Toast.makeText(this, "Error cargando historial", Toast.LENGTH_SHORT).show()
+                }
+            )
     }
 }

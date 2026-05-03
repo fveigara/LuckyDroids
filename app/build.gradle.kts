@@ -40,18 +40,14 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
 
     // Room (SQLite)
-    implementation("androidx.room:room-runtime:2.7.0-alpha11")
-    ksp("androidx.room:room-compiler:2.7.0-alpha11")
+    val roomVersion = "2.7.0-alpha11"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-rxjava3:$roomVersion")
 
     // RxJava
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
     implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
-
-    // Room + RxJava
-    implementation("androidx.room:room-rxjava3:2.6.1")
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
-    implementation("androidx.room:room-rxjava3:2.7.0-alpha11")
 
     // RecyclerView (para historial)
     implementation("androidx.recyclerview:recyclerview:1.3.2")

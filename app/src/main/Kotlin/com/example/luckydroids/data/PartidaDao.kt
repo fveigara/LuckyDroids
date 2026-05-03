@@ -12,9 +12,9 @@ interface PartidaDao {
     @Insert
     fun insertar(partida: PartidaEntity): Completable
 
-    @Query("SELECT * FROM PartidaEntity ORDER BY fecha DESC")
+    @Query("SELECT * FROM partidas ORDER BY fecha DESC")
     fun obtenerTodas(): Single<List<PartidaEntity>>
 
-    @Query("DELETE FROM PartidaEntity")
+    @Query("DELETE FROM partidas")
     fun borrarTodas(): Completable
 }

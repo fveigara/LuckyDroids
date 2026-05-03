@@ -1,20 +1,37 @@
 package com.example.luckydroids
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.drawable.AnimationDrawable
+import android.location.LocationManager
+import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.CalendarContract
+import android.provider.MediaStore
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.room.Room
-import com.example.luckydroids.data.*
+import com.example.luckydroids.data.GameDatabase
+import com.example.luckydroids.data.PartidaEntity
+import com.example.luckydroids.data.SaldoEntity
 import com.google.android.material.snackbar.Snackbar
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlin.random.Random
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,7 +42,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnJugar: Button
     private lateinit var layout: LinearLayout
 
+    private lateinit var sonidoGiro: MediaPlayer
+    private lateinit var sonidoVictoria: MediaPlayer
     private lateinit var db: GameDatabase
+
+    private var lat: Double = 0.0
+    private var lon: Double = 0.0
+    private var ganancias = 10
+    private var s1 = 0
+    private var s2 = 0
+    private var s3 = 0
+    private var musicaActiva = true
 
     private val imagenes = intArrayOf(
         R.drawable.ic_bot,
@@ -35,14 +62,15 @@ class MainActivity : AppCompatActivity() {
         R.drawable.ic_vr
     )
 
-    private var ganancias = 10
-    private var s1 = 0
-    private var s2 = 0
-    private var s3 = 0
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        pedirPermisos()
+        obtenerUbicacion()
+        crearCanalNotificaciones()
+
+        startService(Intent(this, MusicService::class.java))
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -54,17 +82,22 @@ class MainActivity : AppCompatActivity() {
         btnJugar = findViewById(R.id.mainActivityBtJugar)
         layout = findViewById(R.id.mainActivityRl)
 
+        sonidoGiro = MediaPlayer.create(this, R.raw.spin)
+        sonidoVictoria = MediaPlayer.create(this, R.raw.win)
+
         db = Room.databaseBuilder(
             applicationContext,
             GameDatabase::class.java,
             "db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
 
         val dineroInicial = intent.getIntExtra("dinero", -1)
 
         if (dineroInicial != -1) {
             ganancias = dineroInicial
-            tvGanancias.text = "Ganancias: $ganancias"
+            actualizarTextoGanancias()
             guardarSaldo()
         } else {
             cargarSaldo()
@@ -72,14 +105,47 @@ class MainActivity : AppCompatActivity() {
 
         btnJugar.setOnClickListener {
             if (ganancias <= 0) {
-                Toast.makeText(this, "Sin saldo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.no_balance), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             animar()
         }
     }
 
+    private fun pedirPermisos() {
+        val permisos = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= 33) {
+            permisos.add(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        permisos.add(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        permisos.add(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+
+        requestPermissions(permisos.toTypedArray(), 1)
+    }
+
+    private fun obtenerUbicacion() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        try {
+            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+
+            lat = location?.latitude ?: 0.0
+            lon = location?.longitude ?: 0.0
+        } catch (e: SecurityException) {
+            lat = 0.0
+            lon = 0.0
+        }
+    }
+
     private fun animar() {
+        if (!sonidoGiro.isPlaying) {
+            sonidoGiro.start()
+        }
+
         slot1.setImageResource(R.drawable.animation)
         val a1 = slot1.drawable as AnimationDrawable
         a1.start()
@@ -96,7 +162,6 @@ class MainActivity : AppCompatActivity() {
             a1.stop()
             a2.stop()
             a3.stop()
-
             tirar()
         }, 1000)
     }
@@ -111,31 +176,58 @@ class MainActivity : AppCompatActivity() {
         slot3.setImageResource(imagenes[s3])
 
         val premio = calcularPremio()
+
         ganancias = ganancias - 1 + premio
-        tvGanancias.text = "Ganancias: $ganancias"
+        actualizarTextoGanancias()
 
         guardarSaldo()
         guardarPartida(premio)
+
+        if (premio > 0) {
+            accionesVictoria(premio)
+        }
     }
 
     private fun calcularPremio(): Int {
         return when {
             s1 == s2 && s2 == s3 -> {
-                Snackbar.make(layout, "100€", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, getString(R.string.win_100), Snackbar.LENGTH_SHORT).show()
                 100
             }
+
             s1 == s2 || s1 == s3 || s2 == s3 -> {
-                Snackbar.make(layout, "5€", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, getString(R.string.win_5), Snackbar.LENGTH_SHORT).show()
                 5
             }
-            else -> 0
+
+            else -> {
+                Snackbar.make(layout, getString(R.string.no_win), Snackbar.LENGTH_SHORT).show()
+                0
+            }
         }
+    }
+
+    private fun accionesVictoria(premio: Int) {
+        if (!sonidoVictoria.isPlaying) {
+            sonidoVictoria.start()
+        }
+
+        guardarCaptura()
+        mostrarNotificacion(premio)
+        guardarEnCalendario(premio)
+    }
+
+    private fun actualizarTextoGanancias() {
+        tvGanancias.text = getString(R.string.winnings, ganancias)
     }
 
     private fun guardarSaldo() {
         db.saldoDao().guardarSaldo(SaldoEntity(id = 1, monedas = ganancias))
             .subscribeOn(Schedulers.io())
-            .subscribe()
+            .subscribe(
+                {},
+                { it.printStackTrace() }
+            )
     }
 
     private fun cargarSaldo() {
@@ -143,25 +235,14 @@ class MainActivity : AppCompatActivity() {
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
-                { it ->
-                    if (it != null) {
-                        ganancias = it.monedas
-                    }
-                    tvGanancias.text =  "Ganancias: $ganancias"
+                { saldo ->
+                    ganancias = saldo.monedas
+                    actualizarTextoGanancias()
                 },
                 {
-                    tvGanancias.text =  "Ganancias: $ganancias"
+                    actualizarTextoGanancias()
                 }
             )
-            //.subscribe(
-                //{ it ->
-                    //ganancias = it.monedas
-                    //tvGanancias.text = ganancias.toString()
-                //},
-                //{
-                    //tvGanancias.text = ganancias.toString()
-                //}
-            //)
     }
 
     private fun guardarPartida(premio: Int) {
@@ -171,12 +252,91 @@ class MainActivity : AppCompatActivity() {
             slot3 = s3,
             premio = premio,
             saldoFinal = ganancias,
-            fecha = System.currentTimeMillis()
+            fecha = System.currentTimeMillis(),
+            latitud = lat,
+            longitud = lon
         )
 
         db.partidaDao().insertar(partida)
             .subscribeOn(Schedulers.io())
-            .subscribe()
+            .subscribe(
+                {},
+                { it.printStackTrace() }
+            )
+    }
+
+    private fun guardarCaptura() {
+        val view = window.decorView.rootView
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        view.draw(canvas)
+
+        val values = ContentValues().apply {
+            put(MediaStore.Images.Media.DISPLAY_NAME, "victoria_${System.currentTimeMillis()}.png")
+            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/LuckyDroids")
+            }
+        }
+
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+        uri?.let {
+            contentResolver.openOutputStream(it)?.use { stream ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            }
+
+            Toast.makeText(this, getString(R.string.screenshot_saved), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun guardarEnCalendario(premio: Int) {
+        val inicio = System.currentTimeMillis()
+        val fin = inicio + 60 * 60 * 1000
+
+        val intent = Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, inicio)
+            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, fin)
+            putExtra(CalendarContract.Events.TITLE, getString(R.string.calendar_title))
+            putExtra(CalendarContract.Events.DESCRIPTION, getString(R.string.calendar_description, premio))
+        }
+
+        startActivity(intent)
+    }
+
+    private fun crearCanalNotificaciones() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "victorias",
+                getString(R.string.notification_channel_victories),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun mostrarNotificacion(premio: Int) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+        }
+
+        val builder = NotificationCompat.Builder(this, "victorias")
+            .setSmallIcon(R.drawable.ic_bot)
+            .setContentTitle(getString(R.string.notification_title))
+            .setContentText(getString(R.string.notification_text, premio))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+
+        NotificationManagerCompat.from(this)
+            .notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
     private fun borrarHistorial() {
@@ -185,7 +345,7 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    Toast.makeText(this, "Historial borrado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.history_deleted), Toast.LENGTH_SHORT).show()
                 },
                 {
                     it.printStackTrace()
@@ -193,12 +353,31 @@ class MainActivity : AppCompatActivity() {
             )
     }
 
-    override fun onCreateOptionsMenu(menu: android.view.Menu?): Boolean {
+    private fun reiniciarSaldo() {
+        ganancias = 10
+        actualizarTextoGanancias()
+        guardarSaldo()
+        Toast.makeText(this, getString(R.string.balance_reset), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun activarDesactivarMusica() {
+        if (musicaActiva) {
+            stopService(Intent(this, MusicService::class.java))
+            musicaActiva = false
+            Toast.makeText(this, getString(R.string.music_disabled), Toast.LENGTH_SHORT).show()
+        } else {
+            startService(Intent(this, MusicService::class.java))
+            musicaActiva = true
+            Toast.makeText(this, getString(R.string.music_enabled), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
 
             R.id.menu_historial -> {
@@ -207,10 +386,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             R.id.menu_reiniciar -> {
-                ganancias = 10
-                tvGanancias.text = "Ganancias: $ganancias"
-                guardarSaldo()
-                Toast.makeText(this, "Saldo reiniciado", Toast.LENGTH_SHORT).show()
+                reiniciarSaldo()
                 true
             }
 
@@ -219,7 +395,30 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
+            R.id.menu_musica -> {
+                activarDesactivarMusica()
+                true
+            }
+
+            R.id.menu_ayuda -> {
+                startActivity(Intent(this, HelpActivity::class.java))
+                true
+            }
+
+            R.id.menu_salir -> {
+                stopService(Intent(this, MusicService::class.java))
+                finish()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDestroy() {
+        sonidoGiro.release()
+        sonidoVictoria.release()
+        stopService(Intent(this, MusicService::class.java))
+        super.onDestroy()
     }
 }
