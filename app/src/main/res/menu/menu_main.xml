@@ -13,6 +13,14 @@
         android:title="Borrar historial"/>
 
     <item
+        android:id="@+id/menu_musica"
+        android:title="Activar/Desactivar música" />
+
+    <item
+        android:id="@+id/menu_ayuda"
+        android:title="Ayuda" />
+
+    <item
         android:id="@+id/menu_salir"
         android:title="Salir"/>
 

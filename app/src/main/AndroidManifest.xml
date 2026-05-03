@@ -15,7 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LuckyDroids">
 
-        <service android:name=".MusicService"/>
+        <service
+            android:name=".MusicService"
+            android:exported="false" />
+
+        <activity android:name=".HelpActivity" />
 
         <activity android:name=".StartActivity" />
 
