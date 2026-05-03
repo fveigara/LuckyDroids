@@ -44,7 +44,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sonidoGiro: MediaPlayer
     private lateinit var sonidoVictoria: MediaPlayer
-
     private lateinit var db: GameDatabase
 
     private var lat: Double = 0.0
@@ -106,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
         btnJugar.setOnClickListener {
             if (ganancias <= 0) {
-                Toast.makeText(this, "Sin saldo", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.no_balance), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -163,7 +162,6 @@ class MainActivity : AppCompatActivity() {
             a1.stop()
             a2.stop()
             a3.stop()
-
             tirar()
         }, 1000)
     }
@@ -193,17 +191,17 @@ class MainActivity : AppCompatActivity() {
     private fun calcularPremio(): Int {
         return when {
             s1 == s2 && s2 == s3 -> {
-                Snackbar.make(layout, "Has ganado 100€", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, getString(R.string.win_100), Snackbar.LENGTH_SHORT).show()
                 100
             }
 
             s1 == s2 || s1 == s3 || s2 == s3 -> {
-                Snackbar.make(layout, "Has ganado 5€", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, getString(R.string.win_5), Snackbar.LENGTH_SHORT).show()
                 5
             }
 
             else -> {
-                Snackbar.make(layout, "No has ganado", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(layout, getString(R.string.no_win), Snackbar.LENGTH_SHORT).show()
                 0
             }
         }
@@ -220,7 +218,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun actualizarTextoGanancias() {
-        tvGanancias.text = "Ganancias: $ganancias"
+        tvGanancias.text = getString(R.string.winnings, ganancias)
     }
 
     private fun guardarSaldo() {
@@ -289,7 +287,7 @@ class MainActivity : AppCompatActivity() {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
             }
 
-            Toast.makeText(this, "Captura guardada en galería", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.screenshot_saved), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -301,8 +299,8 @@ class MainActivity : AppCompatActivity() {
             data = CalendarContract.Events.CONTENT_URI
             putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, inicio)
             putExtra(CalendarContract.EXTRA_EVENT_END_TIME, fin)
-            putExtra(CalendarContract.Events.TITLE, "Victoria en Lucky Droids")
-            putExtra(CalendarContract.Events.DESCRIPTION, "Has ganado $premio monedas.")
+            putExtra(CalendarContract.Events.TITLE, getString(R.string.calendar_title))
+            putExtra(CalendarContract.Events.DESCRIPTION, getString(R.string.calendar_description, premio))
         }
 
         startActivity(intent)
@@ -312,7 +310,7 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "victorias",
-                "Victorias",
+                getString(R.string.notification_channel_victories),
                 NotificationManager.IMPORTANCE_DEFAULT
             )
 
@@ -332,12 +330,13 @@ class MainActivity : AppCompatActivity() {
 
         val builder = NotificationCompat.Builder(this, "victorias")
             .setSmallIcon(R.drawable.ic_bot)
-            .setContentTitle("¡Victoria!")
-            .setContentText("Has ganado $premio monedas")
+            .setContentTitle(getString(R.string.notification_title))
+            .setContentText(getString(R.string.notification_text, premio))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
 
-        NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), builder.build())
+        NotificationManagerCompat.from(this)
+            .notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
     private fun borrarHistorial() {
@@ -346,7 +345,7 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 {
-                    Toast.makeText(this, "Historial borrado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.history_deleted), Toast.LENGTH_SHORT).show()
                 },
                 {
                     it.printStackTrace()
@@ -358,18 +357,18 @@ class MainActivity : AppCompatActivity() {
         ganancias = 10
         actualizarTextoGanancias()
         guardarSaldo()
-        Toast.makeText(this, "Saldo reiniciado", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, getString(R.string.balance_reset), Toast.LENGTH_SHORT).show()
     }
 
     private fun activarDesactivarMusica() {
         if (musicaActiva) {
             stopService(Intent(this, MusicService::class.java))
             musicaActiva = false
-            Toast.makeText(this, "Música desactivada", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.music_disabled), Toast.LENGTH_SHORT).show()
         } else {
             startService(Intent(this, MusicService::class.java))
             musicaActiva = true
-            Toast.makeText(this, "Música activada", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.music_enabled), Toast.LENGTH_SHORT).show()
         }
     }
 

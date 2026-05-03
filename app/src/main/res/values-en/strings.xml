@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Lucky Droids</string>
+    <string name="play">Play</string>
+    <string name="history">History</string>
+    <string name="reset_balance">Reset balance</string>
+    <string name="delete_history">Delete history</string>
+    <string name="music">Enable/Disable music</string>
+    <string name="help">Help</string>
+    <string name="exit">Exit</string>
+    <string name="winnings">Winnings: %1$d</string>
+    <string name="no_balance">No balance</string>
+    <string name="balance_reset">Balance reset</string>
+    <string name="history_deleted">History deleted</string>
+    <string name="win_100">You won €100</string>
+    <string name="win_5">You won €5</string>
+    <string name="no_win">You did not win</string>
+    <string name="player_name">Player name</string>
+    <string name="money">Money</string>
+    <string name="add">Add</string>
+    <string name="screenshot_saved">Screenshot saved to gallery</string>
+    <string name="calendar_title">Lucky Droids victory</string>
+    <string name="calendar_description">You won %1$d coins.</string>
+    <string name="notification_channel_victories">Victories</string>
+    <string name="notification_title">Victory!</string>
+    <string name="notification_text">You won %1$d coins</string>
+    <string name="music_enabled">Music enabled</string>
+    <string name="music_disabled">Music disabled</string>
+</resources>

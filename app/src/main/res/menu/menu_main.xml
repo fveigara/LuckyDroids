@@ -1,27 +1,25 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
         android:id="@+id/menu_historial"
-        android:title="Historial"/>
+        android:title="@string/history" />
 
     <item
         android:id="@+id/menu_reiniciar"
-        android:title="Reiniciar saldo"/>
+        android:title="@string/reset_balance" />
 
     <item
         android:id="@+id/menu_borrar"
-        android:title="Borrar historial"/>
+        android:title="@string/delete_history" />
 
     <item
         android:id="@+id/menu_musica"
-        android:title="Activar/Desactivar música" />
+        android:title="@string/music" />
 
     <item
         android:id="@+id/menu_ayuda"
-        android:title="Ayuda" />
+        android:title="@string/help" />
 
     <item
         android:id="@+id/menu_salir"
-        android:title="Salir"/>
-
+        android:title="@string/exit" />
 </menu>

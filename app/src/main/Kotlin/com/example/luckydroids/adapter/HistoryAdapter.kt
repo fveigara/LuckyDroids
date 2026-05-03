@@ -15,6 +15,8 @@ class HistoryAdapter(private val lista: List<PartidaEntity>) :
         val combinacion: TextView = view.findViewById(R.id.tvCombinacion)
         val premio: TextView = view.findViewById(R.id.tvPremio)
         val saldo: TextView = view.findViewById(R.id.tvSaldo)
+
+        val ubicacion: TextView = view.findViewById(R.id.tvUbicacion)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -33,5 +35,7 @@ class HistoryAdapter(private val lista: List<PartidaEntity>) :
 
         holder.premio.text = "Premio: ${partida.premio}€"
         holder.saldo.text = "Saldo: ${partida.saldoFinal}€"
+        holder.ubicacion.text =
+            "Ubicación: ${partida.latitud}, ${partida.longitud}"
     }
 }
