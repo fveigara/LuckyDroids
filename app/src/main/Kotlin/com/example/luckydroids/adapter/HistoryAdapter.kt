@@ -7,8 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.luckydroids.R
 import com.example.luckydroids.data.PartidaEntity
+import com.example.luckydroids.models.Score
 
-class HistoryAdapter(private val lista: List<PartidaEntity>) :
+class HistoryAdapter(private val lista: List<Any>) :
     RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -28,14 +29,21 @@ class HistoryAdapter(private val lista: List<PartidaEntity>) :
     override fun getItemCount(): Int = lista.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val partida = lista[position]
+        val item = lista[position]
 
-        holder.combinacion.text =
-            "Slots: ${partida.slot1} - ${partida.slot2} - ${partida.slot3}"
+        if (item is PartidaEntity) {
+            holder.combinacion.text =
+                "Slots: ${item.slot1} - ${item.slot2} - ${item.slot3}"
 
-        holder.premio.text = "Premio: ${partida.premio}€"
-        holder.saldo.text = "Saldo: ${partida.saldoFinal}€"
-        holder.ubicacion.text =
-            "Ubicación: ${partida.latitud}, ${partida.longitud}"
+            holder.premio.text = "Premio: ${item.premio}€"
+            holder.saldo.text = "Saldo: ${item.saldoFinal}€"
+            holder.ubicacion.text =
+                "Ubicación: ${item.latitud}, ${item.longitud}"
+        } else if (item is Score) {
+            holder.combinacion.text = "Jugador: ${item.playerName}"
+            holder.premio.text = "Puntos: ${item.points}"
+            holder.saldo.text = ""
+            holder.ubicacion.text = ""
+        }
     }
 }

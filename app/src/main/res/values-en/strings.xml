@@ -1,4 +1,5 @@
 <resources>
+    <string name="default_web_client_id">1046242852725-aho8botohmhia69122o8ttp8ctt7ebid.apps.googleusercontent.com</string>
     <string name="app_name">Lucky Droids</string>
     <string name="play">Play</string>
     <string name="history">History</string>
@@ -25,4 +26,5 @@
     <string name="notification_text">You won %1$d coins</string>
     <string name="music_enabled">Music enabled</string>
     <string name="music_disabled">Music disabled</string>
+    <string name="login_google">Login with Google</string>
 </resources>

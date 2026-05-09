@@ -71,14 +71,21 @@
 
     </LinearLayout>
 
-    <!-- BOTÓN JUGAR -->
-    <Button
-        android:id="@+id/mainActivityBtJugar"
+    <!-- BOTON INFERIOR -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/play"
-        android:textSize="18sp"
-        android:textColor="?android:attr/textColorPrimary"
-        android:layout_margin="16dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <Button
+            android:id="@+id/mainActivityBtJugar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/play"
+            android:textSize="18sp"
+            android:textColor="?android:attr/textColorPrimary" />
+
+    </LinearLayout>
 
 </LinearLayout>
