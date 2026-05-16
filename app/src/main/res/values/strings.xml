@@ -8,11 +8,12 @@
     <string name="music">Activar/Desactivar música</string>
     <string name="help">Ayuda</string>
     <string name="exit">Salir</string>
+    <string name="jackpot">Bote: %1$d</string>
     <string name="winnings">Ganancias: %1$d</string>
     <string name="no_balance">Sin saldo</string>
     <string name="balance_reset">Saldo reiniciado</string>
     <string name="history_deleted">Historial borrado</string>
-    <string name="win_100">Has ganado 100€</string>
+    <string name="win_100">Has ganado el bote</string>
     <string name="win_5">Has ganado 5€</string>
     <string name="no_win">No has ganado</string>
     <string name="player_name">Nombre del jugador</string>
@@ -27,4 +28,5 @@
     <string name="music_enabled">Música activada</string>
     <string name="music_disabled">Música desactivada</string>
     <string name="login_google">Iniciar sesión con Google</string>
+
 </resources>

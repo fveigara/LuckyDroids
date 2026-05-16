@@ -25,6 +25,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.room.Room
+import com.google.firebase.database.Transaction
 import com.example.luckydroids.api.RetrofitClient
 import com.example.luckydroids.data.GameDatabase
 import com.example.luckydroids.data.PartidaEntity
@@ -37,6 +38,11 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.ValueEventListener
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +53,12 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var txtCommunityPrize: TextView
+
+    private val database = FirebaseDatabase.getInstance()
+
+    private val prizeRef =
+        database.getReference("communityPrize")
     private lateinit var slot1: ImageView
     private lateinit var slot2: ImageView
     private lateinit var slot3: ImageView
@@ -61,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     private var lat: Double = 0.0
     private var lon: Double = 0.0
     private var ganancias = 10
+    private var perdidas = 0
     private var s1 = 0
     private var s2 = 0
     private var s3 = 0
@@ -87,6 +100,9 @@ class MainActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        txtCommunityPrize = findViewById(R.id.txtCommunityPrize)
+        listenCommunityPrize()
+
         slot1 = findViewById(R.id.mainActivitySlot1)
         slot2 = findViewById(R.id.mainActivitySlot2)
         slot3 = findViewById(R.id.mainActivitySlot3)
@@ -110,6 +126,7 @@ class MainActivity : AppCompatActivity() {
         if (dineroInicial != -1) {
             ganancias = dineroInicial
             actualizarTextoGanancias()
+            actualizarTextoPremio()
             guardarSaldo()
         } else {
             cargarSaldo()
@@ -120,7 +137,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.no_balance), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
+            perdidas = perdidas + 1
             animar()
         }
     }
@@ -151,6 +168,55 @@ class MainActivity : AppCompatActivity() {
             lat = 0.0
             lon = 0.0
         }
+    }
+
+    private fun listenCommunityPrize() {
+
+        prizeRef.child("coins")
+            .addValueEventListener(object : ValueEventListener {
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+
+                    val coins =
+                        snapshot.getValue(Int::class.java) ?: 0
+
+                    txtCommunityPrize.text =
+                        "Premio acumulado: $coins"
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+
+                }
+            })
+    }
+
+    private fun addCoins(amount: Int) {
+
+        prizeRef.child("coins")
+            .runTransaction(object : Transaction.Handler {
+
+                override fun doTransaction(
+                    currentData: MutableData
+                ): Transaction.Result {
+
+                    var current =
+                        currentData.getValue(Int::class.java) ?: 0
+
+                    current += amount
+
+                    currentData.value = current
+
+                    return Transaction.success(currentData)
+                }
+
+                override fun onComplete(
+                    error: DatabaseError?,
+                    committed: Boolean,
+                    currentData: DataSnapshot?
+                ) {
+
+                }
+            })
     }
 
     private fun animar() {
@@ -191,6 +257,7 @@ class MainActivity : AppCompatActivity() {
 
         ganancias = ganancias - 1 + premio
         actualizarTextoGanancias()
+        actualizarTextoPremio()
 
         guardarSaldo()
         guardarPartida(premio)
@@ -204,7 +271,7 @@ class MainActivity : AppCompatActivity() {
         return when {
             s1 == s2 && s2 == s3 -> {
                 Snackbar.make(layout, getString(R.string.win_100), Snackbar.LENGTH_SHORT).show()
-                100
+                + perdidas
             }
 
             s1 == s2 || s1 == s3 || s2 == s3 -> {
@@ -233,6 +300,10 @@ class MainActivity : AppCompatActivity() {
         tvGanancias.text = getString(R.string.winnings, ganancias)
     }
 
+    private fun actualizarTextoPremio() {
+        txtCommunityPrize.text = getString(R.string.jackpot, perdidas)
+    }
+
     private fun guardarSaldo() {
         db.saldoDao().guardarSaldo(SaldoEntity(id = 1, monedas = ganancias))
             .subscribeOn(Schedulers.io())
@@ -250,9 +321,11 @@ class MainActivity : AppCompatActivity() {
                 { saldo ->
                     ganancias = saldo.monedas
                     actualizarTextoGanancias()
+                    actualizarTextoPremio()
                 },
                 {
                     actualizarTextoGanancias()
+                    actualizarTextoPremio()
                 }
             )
     }
@@ -368,6 +441,7 @@ class MainActivity : AppCompatActivity() {
     private fun reiniciarSaldo() {
         ganancias = 10
         actualizarTextoGanancias()
+        actualizarTextoPremio()
         guardarSaldo()
         Toast.makeText(this, getString(R.string.balance_reset), Toast.LENGTH_SHORT).show()
     }
@@ -428,6 +502,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        addCoins(10)
         sonidoGiro.release()
         sonidoVictoria.release()
         stopService(Intent(this, MusicService::class.java))

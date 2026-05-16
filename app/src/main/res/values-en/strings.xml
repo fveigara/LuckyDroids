@@ -8,11 +8,12 @@
     <string name="music">Enable/Disable music</string>
     <string name="help">Help</string>
     <string name="exit">Exit</string>
+    <string name="jackpot">Jackpot: %1$d</string>
     <string name="winnings">Winnings: %1$d</string>
     <string name="no_balance">No balance</string>
     <string name="balance_reset">Balance reset</string>
     <string name="history_deleted">History deleted</string>
-    <string name="win_100">You won €100</string>
+    <string name="win_100">You won the jackpot</string>
     <string name="win_5">You won €5</string>
     <string name="no_win">You did not win</string>
     <string name="player_name">Player name</string>
