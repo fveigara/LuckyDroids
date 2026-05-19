@@ -180,8 +180,7 @@ class MainActivity : AppCompatActivity() {
                     val coins =
                         snapshot.getValue(Int::class.java) ?: 0
 
-                    txtCommunityPrize.text =
-                        "Premio acumulado: $coins"
+                    actualizarTextoPremio()
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -255,6 +254,10 @@ class MainActivity : AppCompatActivity() {
 
         val premio = calcularPremio()
 
+        if (s1 == s2 && s2 == s3) {
+            perdidas = 0
+        }
+
         ganancias = ganancias - 1 + premio
         actualizarTextoGanancias()
         actualizarTextoPremio()
@@ -271,7 +274,7 @@ class MainActivity : AppCompatActivity() {
         return when {
             s1 == s2 && s2 == s3 -> {
                 Snackbar.make(layout, getString(R.string.win_100), Snackbar.LENGTH_SHORT).show()
-                + perdidas
+                +perdidas
             }
 
             s1 == s2 || s1 == s3 || s2 == s3 -> {
