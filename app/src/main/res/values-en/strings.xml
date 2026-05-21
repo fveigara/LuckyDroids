@@ -28,4 +28,12 @@
     <string name="music_enabled">Music enabled</string>
     <string name="music_disabled">Music disabled</string>
     <string name="login_google">Login with Google</string>
+    <string name="logged_in_as">Signed in as %1$s</string>
+    <string name="player_hint_locked">Sign in with Google to use your name</string>
+    <string name="ranking">Ranking</string>
+    <string name="ranking_title">Top 10</string>
+    <string name="ranking_empty">No scores yet</string>
+    <string name="ranking_load_error">Error loading ranking</string>
+    <string name="no_history">No games saved</string>
+    <string name="history_load_error">Error loading history</string>
 </resources>

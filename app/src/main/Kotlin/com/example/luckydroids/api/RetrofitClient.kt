@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
 
     private const val BASE_URL =
-        "https://luckydroids-default-rtdb.firebaseio.com/"
+        "https://luckydroidsonline-default-rtdb.europe-west1.firebasedatabase.app/"
 
     val api: FirebaseApi by lazy {
 

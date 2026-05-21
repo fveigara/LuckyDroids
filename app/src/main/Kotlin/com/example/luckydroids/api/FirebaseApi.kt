@@ -4,15 +4,22 @@ import com.example.luckydroids.models.Score
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface FirebaseApi {
 
     @GET("scores.json")
-    suspend fun getScores(): Map<String, Score>
+    suspend fun getScores(): Response<Map<String, Score>>
 
-    @POST("scores.json")
+    @GET("scores/{uid}.json")
+    suspend fun getScore(
+        @Path("uid") uid: String
+    ): Response<Score>
+
+    @PUT("scores/{uid}.json")
     suspend fun saveScore(
+        @Path("uid") uid: String,
         @Body score: Score
     ): Response<Unit>
 }

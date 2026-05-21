@@ -4,6 +4,10 @@
         android:title="@string/history" />
 
     <item
+        android:id="@+id/menu_ranking"
+        android:title="@string/ranking" />
+
+    <item
         android:id="@+id/menu_reiniciar"
         android:title="@string/reset_balance" />
 

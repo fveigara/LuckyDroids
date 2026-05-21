@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.provider.CalendarContract
 import android.provider.MediaStore
 import android.view.Menu
@@ -25,30 +26,24 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.room.Room
-import com.google.firebase.database.Transaction
 import com.example.luckydroids.api.RetrofitClient
 import com.example.luckydroids.data.GameDatabase
 import com.example.luckydroids.data.PartidaEntity
 import com.example.luckydroids.data.SaldoEntity
 import com.example.luckydroids.models.Score
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.jvm.java
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -56,9 +51,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var txtCommunityPrize: TextView
 
     private val database = FirebaseDatabase.getInstance()
+    private val prizeRef = database.getReference("communityPrize")
 
-    private val prizeRef =
-        database.getReference("communityPrize")
     private lateinit var slot1: ImageView
     private lateinit var slot2: ImageView
     private lateinit var slot3: ImageView
@@ -73,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     private var lat: Double = 0.0
     private var lon: Double = 0.0
     private var ganancias = 10
-    private var perdidas = 0
+    private var currentJackpot = 0
     private var s1 = 0
     private var s2 = 0
     private var s3 = 0
@@ -137,7 +131,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.no_balance), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            perdidas = perdidas + 1
             animar()
         }
     }
@@ -171,51 +164,51 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun listenCommunityPrize() {
+        prizeRef.child("coins").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                currentJackpot = snapshot.getValue(Int::class.java) ?: 0
+                actualizarTextoPremio()
+            }
 
-        prizeRef.child("coins")
-            .addValueEventListener(object : ValueEventListener {
-
-                override fun onDataChange(snapshot: DataSnapshot) {
-
-                    val coins =
-                        snapshot.getValue(Int::class.java) ?: 0
-
-                    actualizarTextoPremio()
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-
-                }
-            })
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
     private fun addCoins(amount: Int) {
+        prizeRef.child("coins").runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                val current = currentData.getValue(Int::class.java) ?: 0
+                currentData.value = current + amount
+                return Transaction.success(currentData)
+            }
 
-        prizeRef.child("coins")
-            .runTransaction(object : Transaction.Handler {
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                currentData: DataSnapshot?
+            ) {}
+        })
+    }
 
-                override fun doTransaction(
-                    currentData: MutableData
-                ): Transaction.Result {
+    private fun ganarJackpotYReset(onWon: (Int) -> Unit) {
+        var wonAmount = 0
+        prizeRef.child("coins").runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                wonAmount = currentData.getValue(Int::class.java) ?: 0
+                currentData.value = 0
+                return Transaction.success(currentData)
+            }
 
-                    var current =
-                        currentData.getValue(Int::class.java) ?: 0
-
-                    current += amount
-
-                    currentData.value = current
-
-                    return Transaction.success(currentData)
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                currentData: DataSnapshot?
+            ) {
+                if (committed) {
+                    runOnUiThread { onWon(wonAmount) }
                 }
-
-                override fun onComplete(
-                    error: DatabaseError?,
-                    committed: Boolean,
-                    currentData: DataSnapshot?
-                ) {
-
-                }
-            })
+            }
+        })
     }
 
     private fun animar() {
@@ -252,40 +245,36 @@ class MainActivity : AppCompatActivity() {
         slot2.setImageResource(imagenes[s2])
         slot3.setImageResource(imagenes[s3])
 
-        val premio = calcularPremio()
+        ganancias -= 1
 
-        if (s1 == s2 && s2 == s3) {
-            perdidas = 0
-        }
-
-        ganancias = ganancias - 1 + premio
-        actualizarTextoGanancias()
-        actualizarTextoPremio()
-
-        guardarSaldo()
-        guardarPartida(premio)
-
-        if (premio > 0) {
-            accionesVictoria(premio)
-        }
-    }
-
-    private fun calcularPremio(): Int {
-        return when {
+        when {
             s1 == s2 && s2 == s3 -> {
                 Snackbar.make(layout, getString(R.string.win_100), Snackbar.LENGTH_SHORT).show()
-                +perdidas
+                ganarJackpotYReset { won -> aplicarPremio(won) }
             }
 
             s1 == s2 || s1 == s3 || s2 == s3 -> {
                 Snackbar.make(layout, getString(R.string.win_5), Snackbar.LENGTH_SHORT).show()
-                5
+                aplicarPremio(5)
             }
 
             else -> {
                 Snackbar.make(layout, getString(R.string.no_win), Snackbar.LENGTH_SHORT).show()
-                0
+                addCoins(1)
+                aplicarPremio(0)
             }
+        }
+    }
+
+    private fun aplicarPremio(premio: Int) {
+        ganancias += premio
+        actualizarTextoGanancias()
+        guardarSaldo()
+        guardarPartida(premio)
+        guardarPuntuacionRemota()
+
+        if (premio > 0) {
+            accionesVictoria(premio)
         }
     }
 
@@ -304,7 +293,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun actualizarTextoPremio() {
-        txtCommunityPrize.text = getString(R.string.jackpot, perdidas)
+        txtCommunityPrize.text = getString(R.string.jackpot, currentJackpot)
     }
 
     private fun guardarSaldo() {
@@ -351,6 +340,42 @@ class MainActivity : AppCompatActivity() {
                 {},
                 { it.printStackTrace() }
             )
+    }
+
+    private fun guardarPuntuacionRemota() {
+        val auth = FirebaseAuth.getInstance()
+        val uid = auth.currentUser?.uid
+        if (uid.isNullOrEmpty()) {
+            Log.w("LuckyDroids", "Score no guardado: usuario no autenticado")
+            return
+        }
+
+        val nombre = auth.currentUser?.displayName
+            ?: intent.getStringExtra("nombre")
+            ?: "Anónimo"
+
+        val nuevo = Score(
+            uid = uid,
+            playerName = nombre,
+            points = ganancias,
+            timestamp = System.currentTimeMillis()
+        )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val getResp = RetrofitClient.api.getScore(uid)
+                val actual = if (getResp.isSuccessful) getResp.body() else null
+                Log.d("LuckyDroids", "Score actual remoto: $actual, nuevo: $nuevo")
+                if (actual == null || nuevo.points > actual.points) {
+                    val putResp = RetrofitClient.api.saveScore(uid, nuevo)
+                    Log.d("LuckyDroids", "Score PUT code=${putResp.code()} ok=${putResp.isSuccessful}")
+                } else {
+                    Log.d("LuckyDroids", "Score no mejorado, no se sobrescribe")
+                }
+            } catch (e: Exception) {
+                Log.e("LuckyDroids", "Error guardando score", e)
+            }
+        }
     }
 
     private fun guardarCaptura() {
@@ -474,6 +499,11 @@ class MainActivity : AppCompatActivity() {
                 true
             }
 
+            R.id.menu_ranking -> {
+                startActivity(Intent(this, RankingActivity::class.java))
+                true
+            }
+
             R.id.menu_reiniciar -> {
                 reiniciarSaldo()
                 true
@@ -505,7 +535,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        addCoins(10)
+        guardarPuntuacionRemota()
         sonidoGiro.release()
         sonidoVictoria.release()
         stopService(Intent(this, MusicService::class.java))

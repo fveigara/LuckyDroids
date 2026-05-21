@@ -15,7 +15,9 @@
         android:layout_marginTop="291dp"
         android:ems="10"
         android:inputType="text"
-        android:hint="Nombre del jugador"
+        android:enabled="false"
+        android:focusable="false"
+        android:hint="@string/player_hint_locked"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

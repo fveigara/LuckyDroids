@@ -6,17 +6,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.luckydroids.api.RetrofitClient
-import com.example.luckydroids.models.Score
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class StartActivity : AppCompatActivity() {
 
@@ -26,7 +21,6 @@ class StartActivity : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var firebaseAuth: FirebaseAuth
-    private var currentCoins: Int = 10
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,51 +42,49 @@ class StartActivity : AppCompatActivity() {
         addButton = findViewById(R.id.add_button)
         loginButton = findViewById(R.id.mainActivityBtLogin)
 
+        aplicarUsuarioActual()
+
         loginButton.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
             startActivityForResult(signInIntent, 1000)
         }
 
         addButton.setOnClickListener {
-
-            val nombre = playerInput.text.toString().trim()
-            val dinero = moneyInput.text.toString().trim().toIntOrNull() ?: 10
-            currentCoins = dinero
-
-            if (nombre.isEmpty()) {
-                playerInput.error = "Introduce un nombre"
+            val user = firebaseAuth.currentUser
+            if (user == null) {
+                Toast.makeText(
+                    this,
+                    "Inicia sesión con Google antes de jugar",
+                    Toast.LENGTH_LONG
+                ).show()
                 return@setOnClickListener
             }
 
-            saveScore(nombre, currentCoins)
+            val nombre = user.displayName?.takeIf { it.isNotBlank() } ?: "Anónimo"
+            val dinero = moneyInput.text.toString().trim().toIntOrNull() ?: 10
 
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("nombre", nombre)
             intent.putExtra("dinero", dinero)
-
             startActivity(intent)
-        }
-
-        // If user is already logged in, we might want to save their score on start
-        if (firebaseAuth.currentUser != null) {
-            saveScore(firebaseAuth.currentUser?.displayName ?: "Unknown", currentCoins)
         }
     }
 
-    private fun saveScore(playerName: String, points: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                RetrofitClient.api.saveScore(
-                    Score(
-                        uid = firebaseAuth.currentUser?.uid ?: "",
-                        playerName = playerName,
-                        points = points,
-                        timestamp = System.currentTimeMillis()
-                    )
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+    private fun aplicarUsuarioActual() {
+        val user = firebaseAuth.currentUser
+        if (user != null) {
+            playerInput.setText(user.displayName ?: "")
+            playerInput.isEnabled = false
+            playerInput.isFocusable = false
+            loginButton.text = getString(R.string.logged_in_as, user.displayName ?: user.email ?: "")
+            loginButton.isEnabled = false
+        } else {
+            playerInput.setText("")
+            playerInput.isEnabled = false
+            playerInput.isFocusable = false
+            playerInput.hint = getString(R.string.player_hint_locked)
+            loginButton.text = getString(R.string.login_google)
+            loginButton.isEnabled = true
         }
     }
 
@@ -102,7 +94,7 @@ class StartActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     Toast.makeText(this, "Login correcto", Toast.LENGTH_LONG).show()
-                    saveScore(firebaseAuth.currentUser?.displayName ?: "Google User", currentCoins)
+                    aplicarUsuarioActual()
                 }
             }
     }

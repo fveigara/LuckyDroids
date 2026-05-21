@@ -28,5 +28,13 @@
     <string name="music_enabled">Música activada</string>
     <string name="music_disabled">Música desactivada</string>
     <string name="login_google">Iniciar sesión con Google</string>
+    <string name="logged_in_as">Conectado como %1$s</string>
+    <string name="player_hint_locked">Inicia sesión con Google para usar tu nombre</string>
+    <string name="ranking">Ranking</string>
+    <string name="ranking_title">Top 10</string>
+    <string name="ranking_empty">Aún no hay puntuaciones</string>
+    <string name="ranking_load_error">Error cargando el ranking</string>
+    <string name="no_history">No hay partidas guardadas</string>
+    <string name="history_load_error">Error cargando historial</string>
 
 </resources>
